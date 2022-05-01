@@ -23,8 +23,9 @@ def generate_twod_data(
     kernel_lengthscale=5,
     noise_variance=0.0,
     fixed_view_idx=None,
+    seed: int = 42,
 ):
-
+    rng = numpy.random.default_rng(seed)
     kernel = rbf_covariance
     kernel_params_true = [np.log(1.0), np.log(1.0)]
     xlimits = [0, 10]
@@ -55,13 +56,14 @@ def generate_twod_data(
             mvnpy.rvs(
                 mean=np.zeros(X_orig_single.shape[0]),
                 cov=K_XX + 0.001 * np.eye(K_XX.shape[0]),
+                random_state=seed,
             )
             for _ in range(nY)
         ]
     ).T
 
     if n_latent_gps is not None:
-        W_mat = np.random.normal(size=(n_latent_gps, n_outputs))
+        W_mat = rng.normal(size=(n_latent_gps, n_outputs))
         Y_orig = Y_orig @ W_mat
 
     Y = np.concatenate([Y_orig] * n_views, axis=0)
@@ -106,12 +108,17 @@ def generate_twod_data_partial_overlap(
     x2s = np.linspace(*ylimits, num=grid_size)
     X1, X2 = np.meshgrid(x1s, x2s)
     X_orig_single = np.vstack([X1.ravel(), X2.ravel()]).T
-    
+
     ## Only keep the center square of points
     X_orig_single_partial = X_orig_single.copy()
-    keep_idx = np.logical_and(np.abs(X_orig_single_partial[:, 0]) < 2.5, np.abs(X_orig_single_partial[:, 1]) < 2.5)
+    keep_idx = np.logical_and(
+        np.abs(X_orig_single_partial[:, 0]) < 2.5,
+        np.abs(X_orig_single_partial[:, 1]) < 2.5,
+    )
     X_orig_single_partial = X_orig_single_partial[keep_idx]
-    X_orig = np.concatenate([X_orig_single.copy(), X_orig_single_partial.copy()], axis=0)
+    X_orig = np.concatenate(
+        [X_orig_single.copy(), X_orig_single_partial.copy()], axis=0
+    )
     n_samples_per_view = X_orig.shape[0] // 2
 
     n_samples_list = [n_samples_per_view] * n_views
@@ -159,25 +166,24 @@ def generate_twod_data_partial_overlap(
     # )
 
     X, Y, n_samples_list, view_idx = apply_gp_warp(
-        X_orig_single[:grid_size**2],
-        Y_orig[:grid_size**2],
+        X_orig_single[: grid_size ** 2],
+        Y_orig[: grid_size ** 2],
         n_views=2,
         kernel_variance=kernel_variance,
         kernel_lengthscale=kernel_lengthscale,
         noise_variance=noise_variance,
     )
 
-
     X = np.concatenate(
         [
-            X[:grid_size**2],
-            X[grid_size**2:][keep_idx],
+            X[: grid_size ** 2],
+            X[grid_size ** 2 :][keep_idx],
         ]
     )
     Y = np.concatenate(
         [
-            Y[:grid_size**2],
-            Y[grid_size**2:][keep_idx],
+            Y[: grid_size ** 2],
+            Y[grid_size ** 2 :][keep_idx],
         ]
     )
     view_idx = view_idx.tolist()
