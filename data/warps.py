@@ -24,6 +24,7 @@ def apply_gp_warp(
     kernel_lengthscale=1.0,
     mean_slope=1.0,
     mean_intercept=0.0,
+    seed: int = 42
 ):
 
     n_samples_per_view = X_orig_single.shape[0]
@@ -58,6 +59,7 @@ def apply_gp_warp(
             X_curr_view_warped = mvnpy.rvs(
                 mean=X_orig_single[:, ss] * mean_slope + mean_intercept,
                 cov=kernel(X_orig_single, X_orig_single, warp_kernel_params_true),
+                random_state=seed
             )
             # import ipdb; ipdb.set_trace()
             X[
