@@ -59,7 +59,7 @@ def apply_gp_warp(
             X_curr_view_warped = mvnpy.rvs(
                 mean=X_orig_single[:, ss] * mean_slope + mean_intercept,
                 cov=kernel(X_orig_single, X_orig_single, warp_kernel_params_true),
-                random_state=seed
+                random_state=seed+vv
             )
             # import ipdb; ipdb.set_trace()
             X[
