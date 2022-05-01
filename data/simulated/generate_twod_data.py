@@ -25,7 +25,7 @@ def generate_twod_data(
     fixed_view_idx=None,
     seed: int = 42,
 ):
-    rng = numpy.random.default_rng(seed)
+    rng = np.random.default_rng(seed)
     kernel = rbf_covariance
     kernel_params_true = [np.log(1.0), np.log(1.0)]
     xlimits = [0, 10]
